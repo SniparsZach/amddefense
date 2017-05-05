@@ -34,6 +34,8 @@ var player = {
     yPos: 250,
     goUp: false,
     goDown: false,
+    height:45,
+    width:45,
     move: function() {
         if (player.goUp && player.yPos > 0) {
             this.yPos -= 5;
@@ -46,7 +48,7 @@ var player = {
         ctx.beginPath();
         var nvidiaImage = document.createElement("img");
         nvidiaImage.src = "pictures/nvidiaplayer.jpg";
-        ctx.drawImage(nvidiaImage, this.xPos, this.yPos, 45, 45);
+        ctx.drawImage(nvidiaImage, this.xPos, this.yPos, this.width, this.height);
     }
 };
 
@@ -82,7 +84,7 @@ document.addEventListener("keyup", function(evt){
 })
 
 
-/*function bullet() {
+function bullet() {
     this.xPos = player.xPos;
     this.yPos = player.yPos;
     this.width = 10;
@@ -93,13 +95,13 @@ document.addEventListener("keyup", function(evt){
         ctx.fillRect(this.xPos, this.yPos, this.width, this.height);
         ctx.stroke();
     };
-}*/
+}
 
-/*document.addEventListener("shoot", function(evt) {
+document.addEventListener("shoot", function(evt) {
     if (evt.keyCode === 32) {
         bullets.push(new bullet());
     }
-});*/
+});
 
 function isColliding(bullets, enemies) {
     var isLeft = enemies.xPos + enemies.width < bullets.xPos;
@@ -108,10 +110,11 @@ function isColliding(bullets, enemies) {
     var isBelow = enemies.yPos < bullets.yPos;
     var isAbove = enemies.yPos > bullets.yPos + bullets.height;
 
-    console.log(isLeft);
-    console.log(isRight);
-    console.log(isBelow);
-    console.log(isRight);
+    console.log("Relative to bullet:");
+    console.log("Left: " + isLeft);
+    console.log("Right: " + isRight);
+    console.log("Below: " + isBelow);
+    console.log("Right: " + isRight);
 
     return !(isRight || isLeft || isAbove || isBelow);
 
@@ -147,13 +150,13 @@ function gameLoop() {
     for (var i = 0; i < enemies.length; i++) {
         enemies[i].move();
         enemies[i].draw();
-/*        if (isColliding(enemies[i], bullet)) {
+        if (isColliding(enemies[i], bullet)) {
             enemies.splice(i, 1);
             bullets.splice(i, 1);
             score = score + 1;
             console.log("Score:" + " " + score);
-        }*/
-        if (death(player, enemies[i])) {
+        }
+        if (death(player, enemies)) {
             alert("Game Over");
             console.log("Died");
             return;
