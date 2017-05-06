@@ -1,7 +1,6 @@
 var myCanvas = document.getElementById("myCanvas");
 var ctx = myCanvas.getContext("2d");
 var enemies = [];
-var player = [];
 var bullets = [];
 var score = 0;
 var htmlscore = document.getElementById(htmlscore);
@@ -9,8 +8,8 @@ var htmlscore = document.getElementById(htmlscore);
 function enemy(xPos, yPos) {
     this.xPos = xPos;
     this.yPos = yPos;
-    this.height = 55;
-    this.width = 55;
+    this.height = 65;
+    this.width = 65;
     this.draw = function() {
         ctx.beginPath();
         var amdImage = document.createElement("img");
@@ -24,10 +23,24 @@ function enemy(xPos, yPos) {
     };
 }
 
-var spawn = setInterval(function() {
-    var tempRand = Math.random() * (myCanvas.height - 35);
-    enemies.push(new enemy(0, tempRand));
-}, 1000);
+function bullet(xPos,yPos) {
+    this.xPos = xPos;
+    this.yPos = yPos;
+    this.width = 10;
+    this.height = 10;
+    this.draw = function() {
+        ctx.beginPath();
+        ctx.rect(this.xPos, this.yPos, this.width, this.height);
+        ctx.fillRect(this.xPos, this.yPos, this.width, this.height);
+        ctx.stroke();
+    };
+    
+    this.move = function() {
+        this.xPos -= 7;
+        this.yPos -= 0;
+    };
+
+}
 
 var player = {
     xPos: 800,
@@ -51,6 +64,28 @@ var player = {
         ctx.drawImage(nvidiaImage, this.xPos, this.yPos, this.width, this.height);
     }
 };
+
+var spawn = setInterval(function() {
+    var tempRand = Math.random() * (myCanvas.height - 35);
+    enemies.push(new enemy(0, tempRand));
+    console.log("Enemies: " + enemies.length);
+
+}, 1000);
+
+document.body.onkeyup = function(evt) {
+    if(evt.keyCode === 32) {
+        bullets.push(new bullet(player.xPos, player.yPos+17.5));
+        console.log("Bullets Fired: " + bullets.length);
+    }    
+};
+
+/* function whenPushed () {
+    setTimeout(function () {
+    if(evt.keyCode === 32) {
+        bullets.push(new bullet(player.xPos, player.yPos+17.5));
+        console.log("Bullets Fired: " + bullets.length);
+    }    
+}, 3000); */
 
 document.addEventListener("keydown", function(evt){
     if(evt.keyCode === 37){
@@ -81,46 +116,18 @@ document.addEventListener("keyup", function(evt){
     if(evt.keyCode === 40){
         player.goDown = false;        
     }    
-})
-
-
-function bullet() {
-    this.xPos = player.xPos;
-    this.yPos = player.yPos;
-    this.width = 10;
-    this.height = 10;
-    this.draw = function() {
-        this.xPos-= 5;
-        ctx.rect(this.xPos, this.yPos, this.width, this.height);
-        ctx.fillRect(this.xPos, this.yPos, this.width, this.height);
-        ctx.stroke();
-    };
-}
-
-document.addEventListener("shoot", function(evt) {
-    if (evt.keyCode === 32) {
-        bullets.push(new bullet());
-    }
 });
 
 function isColliding(bullets, enemies) {
-    var isLeft = enemies.xPos + enemies.width < bullets.xPos;
-    var isRight = enemies.xPos > bullets.xPos + bullets.width;
+    var isLeft = enemies.xPos + enemies.width < bullets.xPos; //xPos undefined [bullets var]
+    var isRight = enemies.xPos > bullets.xPos;
 
     var isBelow = enemies.yPos < bullets.yPos;
     var isAbove = enemies.yPos > bullets.yPos + bullets.height;
 
-    console.log("Relative to bullet:");
-    console.log("Left: " + isLeft);
-    console.log("Right: " + isRight);
-    console.log("Below: " + isBelow);
-    console.log("Right: " + isRight);
-
     return !(isRight || isLeft || isAbove || isBelow);
 
 }
-
-
 
 function death(player, enemies) {
     var isLeft = enemies.xPos + enemies.width < player.xPos;
@@ -128,12 +135,6 @@ function death(player, enemies) {
 
     var isBelow = enemies.yPos < player.yPos;
     var isAbove = enemies.yPos > player.yPos + player.height;
-
-    console.log("Relative to player:");
-    console.log("Left: " + isLeft);
-    console.log("Right: " + isRight);
-    console.log("Below: " + isBelow);
-    console.log("Right: " + isRight);
 
     return !(isRight || isLeft || isAbove || isBelow);
 
@@ -143,28 +144,35 @@ function gameLoop() {
     ctx.beginPath();
     ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
 
-    console.log(enemies.length);
+    console.log(bullets[i]);
     
     player.move();
     player.draw();
-    for (var i = 0; i < enemies.length; i++) {
-        enemies[i].move();
-        enemies[i].draw();
-        if (isColliding(enemies[i], bullet)) {
+
+    for (var i = 0; i < bullets.length; i++) {
+        bullets[i].move();
+        bullets[i].draw();
+        if (isColliding(bullets[i], enemies[i])) { //xPos undefined [bullets var]
             enemies.splice(i, 1);
             bullets.splice(i, 1);
             score = score + 1;
-            console.log("Score:" + " " + score);
+            console.log("Score: " + score);
         }
-        if (death(player, enemies)) {
+        if (bullets[i].xPos == 0) {
+            bullets.splice(i,1);
+            console.log("Bullet spliced by going out of the map");
+        }
+    }    
+    
+    for (var i = 0; i < enemies.length; i++) {
+        enemies[i].move();
+        enemies[i].draw();
+        if (death(enemies[i], player)) {
             alert("Game Over");
             console.log("Died");
             return;
         }
-        if (bullets.xPos == 0) {
-            bullets.splice(i,1);
-        }
-        if (enemies.xPos == myCanvas.width) {
+        if (enemies[i].xPos == 900) {
             enemies.splice(i, 1);
             console.log("Enemy spliced by going out of map");
         }
